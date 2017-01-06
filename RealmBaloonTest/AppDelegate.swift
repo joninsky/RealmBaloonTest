@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import RealmSwift
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -15,7 +16,77 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        
+        
+        //This Set up Realm as a custom file
+        PBConfiguration.defaultConfiguration?.addAppID("123456789")
+        
+        return true
+        
+        //Get My custom Realm
+        guard let realm = PBConfiguration.defaultConfiguration?.pebblebeeRealm else {
+            return true
+        }
+        
+        //Add 100 objects
+        for index in 0...100 {
+            let newObject = AnObject()
+            newObject.someInt = index
+            do{
+                try realm.write {
+                    realm.add(newObject)
+                }
+            }catch{
+                print(error)
+            }
+        }
+        
+        //Get all objects
+        let allObject = realm.objects(AnObject.self)
+        
+        print("\(allObject.count) Objects")
+        
+        //If I have more than 100 objects I want to remove everything but 100 objects.
+        guard allObject.count > 100 else{
+            return true
+        }
+        
+        
+        //Make List to hold everything but 100 objects
+        let objectsToRemove = List<AnObject>()
+        
+        
+        //Tried allObject[0...(allObject.count - 101)] but I get an out of range error. So I do the below loop to build a valid `List` object
+        
+        //Enumerate all objects and add everthing but the last 100 objects to the `objectsToRemove` array
+        for (index, value) in allObject.enumerated() {
+            
+            if index < (allObject.count - 101) {
+                objectsToRemove.append(value)
+            }
+        }
+        
+        print("About to remove \(objectsToRemove.count) Objects")
+        
+        //Remove everthing but 100 objects
+        do{
+            try realm.write {
+                realm.delete(objectsToRemove)
+            }
+        }catch{
+            print("\(error)")
+        }
+        
+        
+        print("\(realm.objects(AnObject.self).count) Object Left")
+        
+        
+        guard let realmSize = PBConfiguration.defaultConfiguration?.checkRealmFileSize().0 else{
+            return true
+        }
+        
+        print("Realm File Size is now \(realmSize) Gigabytes. Was \(PBConfiguration.defaultConfiguration?.fileSizeOnInitalization) Gigabytes on Initalization.")
+        
         return true
     }
 
