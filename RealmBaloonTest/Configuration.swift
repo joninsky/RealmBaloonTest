@@ -19,7 +19,7 @@ public class PBConfiguration {
     
     internal var pebblebeeRealm: Realm!
     
-    let v: UInt64 = 0
+    let v: UInt64 = 1
     
     public var fileSizeOnInitalization: Double = 0.0
     
